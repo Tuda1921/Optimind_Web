@@ -12,7 +12,7 @@ async function main() {
       description: 'A fresh apple that restores hunger',
       price: 10,
       type: 'food',
-      imageUrl: '/items/apple.png',
+
     },
     {
       id: 'sandwich-1',
@@ -20,7 +20,7 @@ async function main() {
       description: 'A delicious sandwich',
       price: 20,
       type: 'food',
-      imageUrl: '/items/sandwich.png',
+
     },
     {
       id: 'pizza-1',
@@ -28,7 +28,7 @@ async function main() {
       description: 'A tasty pizza slice',
       price: 30,
       type: 'food',
-      imageUrl: '/items/pizza.png',
+
     },
     // Decoration items
     {
@@ -37,7 +37,7 @@ async function main() {
       description: 'A nice desk for your pet',
       price: 100,
       type: 'decoration',
-      imageUrl: '/items/desk.png',
+
     },
     {
       id: 'bookshelf-1',
@@ -45,7 +45,7 @@ async function main() {
       description: 'Store your favorite books',
       price: 150,
       type: 'decoration',
-      imageUrl: '/items/bookshelf.png',
+
     },
     {
       id: 'plant-1',
@@ -53,7 +53,7 @@ async function main() {
       description: 'A beautiful plant for decoration',
       price: 50,
       type: 'decoration',
-      imageUrl: '/items/plant.png',
+
     },
     // Toy items
     {
@@ -62,7 +62,7 @@ async function main() {
       description: 'A bouncy ball to play with',
       price: 15,
       type: 'toy',
-      imageUrl: '/items/ball.png',
+
     },
     {
       id: 'puzzle-1',
@@ -70,7 +70,7 @@ async function main() {
       description: 'A fun puzzle game',
       price: 25,
       type: 'toy',
-      imageUrl: '/items/puzzle.png',
+
     },
     // Background items
     {
@@ -79,7 +79,7 @@ async function main() {
       description: 'A peaceful forest scene',
       price: 200,
       type: 'background',
-      imageUrl: '/backgrounds/forest.jpg',
+
     },
     {
       id: 'bg-beach-1',
@@ -87,7 +87,7 @@ async function main() {
       description: 'Relax at the beach',
       price: 200,
       type: 'background',
-      imageUrl: '/backgrounds/beach.jpg',
+
     },
     {
       id: 'bg-space-1',
@@ -95,7 +95,57 @@ async function main() {
       description: 'Study among the stars',
       price: 250,
       type: 'background',
-      imageUrl: '/backgrounds/space.jpg',
+
+    },
+    // Pet items
+    {
+      id: 'pet-dog-1',
+      name: 'Dog Pet',
+      description: 'Adopt a cute dog as your pet',
+      price: 500,
+      type: 'pet',
+      data: JSON.stringify({ type: 'dog', name: 'Buddy' }),
+    },
+    {
+      id: 'pet-cat-1',
+      name: 'Cat Pet',
+      description: 'Adopt a fluffy cat',
+      price: 400,
+      type: 'pet',
+      data: JSON.stringify({ type: 'cat', name: 'Whiskers' }),
+    },
+    {
+      id: 'pet-bird-1',
+      name: 'Bird Pet',
+      description: 'Adopt a colorful bird',
+      price: 300,
+      type: 'pet',
+      data: JSON.stringify({ type: 'bird', name: 'Tweety' }),
+    },
+    // Game play items
+    {
+      id: 'game-play-1',
+      name: '1 Game Play',
+      description: 'Buy 1 extra game session',
+      price: 50,
+      type: 'game_play',
+
+    },
+    {
+      id: 'game-play-2',
+      name: '2 Game Plays',
+      description: 'Buy 2 extra game sessions',
+      price: 90,
+      type: 'game_play',
+
+    },
+    {
+      id: 'game-play-3',
+      name: '3 Game Plays',
+      description: 'Buy 3 extra game sessions',
+      price: 120,
+      type: 'game_play',
+
     },
   ];
 
@@ -112,12 +162,14 @@ async function main() {
   // Create a demo user
   const demoUser = await prisma.user.upsert({
     where: { email: 'demo@optimind.com' },
-    update: {},
+    update: {
+      coins: 2000,
+    },
     create: {
       email: 'demo@optimind.com',
       name: 'Demo User',
       passwordHash: '$2a$10$X5xK8fQb.7EqV1KZlY3.JeZ8QYQ8zQZJnLYxJYYJYYJYYJYYJYYJY', // "password123"
-      coins: 1000,
+      coins: 2000,
       level: 5,
       exp: 250,
     },
@@ -128,11 +180,15 @@ async function main() {
   // Create demo pet
   await prisma.pet.upsert({
     where: { userId: demoUser.id },
-    update: {},
+    update: {
+      experience: 0,
+    },
     create: {
       userId: demoUser.id,
       name: 'Buddy',
       type: 'dog',
+      level: 2,
+      experience: 0,
       hunger: 80,
       happiness: 90,
       energy: 70,
@@ -164,7 +220,6 @@ async function main() {
       description: 'Review vocabulary and grammar',
       status: 'completed',
       priority: 'low',
-      completedAt: new Date(),
       userId: demoUser.id,
     },
   ];

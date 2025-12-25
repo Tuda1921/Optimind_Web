@@ -88,6 +88,7 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 
 	// State quản lý Background Selector (vẫn cục bộ)
 	const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
+	const [currentFilter, setCurrentFilter] = useState<"MP3" | "YouTube">("MP3");
 
 	// Lấy URL nền hiện tại (Giả lập)
 	const [currentBg, setCurrentBg] = useState(backgrounds[0]);
@@ -100,11 +101,16 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 
 	// MỚI: Hàm xử lý toggle chung (Đã sửa lỗi tham chiếu)
 	const handleToggleWidget = (
-		widgetId: "music" | "background" | "camera"
+		widgetId: "music" | "background" | "camera" | "sound"
 	) => {
 		if (widgetId === "music") {
-			togglePlayerVisibility(!isPlayerVisible); // Sử dụng Context
+			setCurrentFilter("MP3");
+			togglePlayerVisibility(true); // Luôn mở
 			setShowBackgroundSelector(false); // Đóng cái khác
+		} else if (widgetId === "sound") {
+			setCurrentFilter("YouTube");
+			togglePlayerVisibility(true); // Luôn mở
+			setShowBackgroundSelector(false);
 		} else if (widgetId === "background") {
 			setShowBackgroundSelector((prev) => !prev);
 			togglePlayerVisibility(false); // Đóng cái khác
@@ -132,7 +138,7 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 		},
 		{
 			id: "music",
-			label: "Nghe nhạc",
+			label: "Nhạc nền",
 			icon: <Music className="h-6 w-6" />,
 			className:
 				isPlaying || isPlayerVisible
@@ -142,10 +148,10 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 		},
 		{
 			id: "waves",
-			label: "Âm thanh nền",
+			label: "Âm thanh",
 			icon: <Waves className="h-6 w-6" />,
 			className: "text-white",
-			onClick: () => console.log("Waves clicked"), // Placeholder
+			onClick: () => handleToggleWidget("sound"),
 		},
 		{
 			id: "background",
@@ -162,12 +168,12 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 		<TooltipProvider>
 			<div
 				className={cn(
-					"absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 p-3 z-30",
+					"absolute bottom-4 right-4 flex flex-row gap-3 p-3 z-30",
 					glassEffect,
 					"transition-all duration-300 ease-in-out",
 					isUiVisible
-						? "opacity-100 translate-x-0"
-						: "opacity-0 translate-x-full"
+						? "opacity-100 translate-y-0"
+						: "opacity-0 translate-y-full"
 				)}
 			>
 				{/* Dùng .map() để render các nút */}
@@ -193,7 +199,7 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 			)}
 
 			{/* === WIDGET POPUP (NGHE NHẠC) === */}
-			<MusicPlayer />
+			<MusicPlayer filterType={currentFilter} />
 		</TooltipProvider>
 	);
 };

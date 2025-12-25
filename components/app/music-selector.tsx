@@ -61,9 +61,11 @@ const formatSeconds = (seconds: number): string => {
 	).padStart(2, "0")}`;
 };
 
-interface MusicPlayerProps {}
+interface MusicPlayerProps {
+	filterType?: "MP3" | "YouTube";
+}
 
-const MusicPlayer: FC<MusicPlayerProps> = () => {
+const MusicPlayer: FC<MusicPlayerProps> = ({ filterType }) => {
 	// Lấy state và handlers từ Context
 	const {
 		tracks,
@@ -125,6 +127,7 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 	// Xử lý chọn track
 	const handleTrackSelect = (track: any) => {
 		setCurrentTrack(track);
+		setIsPlaying(true); // Tự động phát khi chọn track
 	};
 
 	// Xử lý Xóa track
@@ -198,7 +201,9 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 		>
 			{/* Header và nút đóng */}
 			<div className="flex justify-between items-center pb-3 border-b border-white/20">
-				<h3 className="text-lg font-semibold">Nhạc nền & Âm thanh</h3>
+				<h3 className="text-lg font-semibold">
+					{filterType === "MP3" ? "Nhạc nền" : "Âm thanh"}
+				</h3>
 				<Button
 					variant="ghost"
 					size="icon"
@@ -304,69 +309,76 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 				</p>
 			</div>
 
-			{/* Danh sách nhạc (scrollable) */}
-			<h4 className="text-sm font-semibold mt-2 mb-2">Chọn bản nhạc</h4>
-			<ScrollArea className="flex-1 overflow-hidden">
-				<div className="space-y-1 p-1">
-					{tracks.map((track) => (
-						<div
-							key={track.id}
-							className={cn(
-								"flex justify-between items-center group rounded-md hover:bg-white/20",
-								currentTrack.id === track.id && "bg-white/20",
-								currentTrack.id === track.id &&
-									isPlaying &&
-									"ring-2 ring-green-400 text-green-400"
-							)}
-						>
-							<div
-								className={cn(
-									"flex w-full items-center h-auto p-2 gap-3 text-left"
-								)}
-								onClick={() => handleTrackSelect(track)}
-							>
-								<Music className="w-4 h-4 shrink-0" />
-								<div className="flex-1 truncate">
-									<p className="text-sm truncate">
-										{track.name}
-									</p>
-								</div>
-							</div>
+			{/* Danh sách nhạc (scrollable) - Chỉ hiện khi MP3 */}
+			{filterType === "MP3" && (() => {
+				const filteredTracks = tracks.filter((t) => t.type !== "YouTube");
+				return (
+					<>
+						<h4 className="text-sm font-semibold mt-2 mb-2">Nhạc nền</h4>
+						<ScrollArea className="flex-1 overflow-hidden">
+							<div className="space-y-1 p-1">
+								{filteredTracks.map((track) => (
+									<div
+										key={track.id}
+										className={cn(
+											"flex justify-between items-center group rounded-md hover:bg-white/20",
+											currentTrack.id === track.id && "bg-white/20",
+											currentTrack.id === track.id &&
+											isPlaying &&
+											"ring-2 ring-green-400 text-green-400"
+										)}
+									>
+										<div
+											className={cn(
+												"flex w-full items-center h-auto p-2 gap-3 text-left"
+											)}
+											onClick={() => handleTrackSelect(track)}
+										>
+											<Music className="w-4 h-4 shrink-0" />
+											<div className="flex-1 truncate">
+												<p className="text-sm truncate">
+													{track.name}
+												</p>
+											</div>
+										</div>
 
-							{/* Nút 3 chấm (Edit/Delete) */}
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-8 w-8 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-white/20"
-									>
-										<MoreVertical className="h-4 w-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent className="bg-black/70 backdrop-blur-md border-white/20 text-white">
-									<DropdownMenuItem
-										className="cursor-pointer"
-										onClick={() => handleStartRename(track)}
-									>
-										<Pencil className="mr-2 h-4 w-4" />
-										Đổi tên
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										className="cursor-pointer text-red-400 focus:text-red-400"
-										onClick={() =>
-											handleDeleteTrack(track.id)
-										}
-									>
-										<Trash2 className="mr-2 h-4 w-4" />
-										Xóa
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					))}
-				</div>
-			</ScrollArea>
+										{/* Nút 3 chấm (Edit/Delete) */}
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-white/20"
+												>
+													<MoreVertical className="h-4 w-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent className="bg-black/70 backdrop-blur-md border-white/20 text-white">
+												<DropdownMenuItem
+													className="cursor-pointer"
+													onClick={() => handleStartRename(track)}
+												>
+													<Pencil className="mr-2 h-4 w-4" />
+													Đổi tên
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													className="cursor-pointer text-red-400 focus:text-red-400"
+													onClick={() =>
+														handleDeleteTrack(track.id)
+													}
+												>
+													<Trash2 className="mr-2 h-4 w-4" />
+													Xóa
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</div>
+								))}
+							</div>
+						</ScrollArea>
+					</>
+				);
+			})()}
 
 			{/* Dialog Đổi tên */}
 			<Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>

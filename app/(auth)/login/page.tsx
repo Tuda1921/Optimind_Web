@@ -31,8 +31,8 @@ export default function LoginPage() {
 			setError(loginError || "Đăng nhập thất bại");
 			setLoading(false);
 		} else {
-			router.push("/study");
-			router.refresh();
+			// Redirect to study page
+			window.location.href = "/study";
 		}
 	};
 
