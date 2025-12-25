@@ -1,21 +1,66 @@
-// "use client";
+// // "use client";
 
+// import { redirect } from "next/navigation";
+// import { prisma } from "@/lib/db"
+// import { getCurrentUser } from "@/utils/auth-server"; 
+// import StreamVideoProvider from "@/hooks/useStream";
+// import BattleRoom from "@/components/rooms/battle-room";
+// import StudyRoom from "@/components/rooms/study-room";
+
+// export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
+//   const { id: roomId } = await params;
+
+//   const user = await getCurrentUser();
+//   if (!user) redirect("/login");
+
+//   const room = await prisma.room.findUnique({
+//     where: { id: roomId },
+//     include: {
+//       members: {
+//         include: {
+//           user: {
+//             select: { id: true, username: true, email: true },
+//           },
+//         },
+//       },
+//     },
+//   });
+
+//   if (!room) return <div>Phòng không tồn tại</div>;
+
+//   const streamUser = {
+//     id: user.id,
+//     email: user.email || "",
+//     username: user.username || "User",
+//   };
+
+
+//   return (
+//     <StreamVideoProvider user={streamUser}>
+//       {room.type === "BATTLE" ? (
+//         <BattleRoom roomId={room.id} />
+//       ) : (
+//         <StudyRoom roomId={room.id} />
+//       )}
+//     </StreamVideoProvider>
+//   );
+// }
+
+// File: app/(api)/rooms/room/[id]/page.tsx
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db"
+import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/utils/auth-server"; 
 import StreamVideoProvider from "@/hooks/useStream";
 import BattleRoom from "@/components/rooms/battle-room";
 import StudyRoom from "@/components/rooms/study-room";
+import RoomPresence from "@/components/rooms/room-presence"; 
 
 export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
-  // 1. Await params
   const { id: roomId } = await params;
 
-  // 2. Check User
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  // 3. Check Room
   const room = await prisma.room.findUnique({
     where: { id: roomId },
     include: {
@@ -31,16 +76,17 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
 
   if (!room) return <div>Phòng không tồn tại</div>;
 
-  // 4. Chuẩn bị User cho Stream SDK
   const streamUser = {
     id: user.id,
     email: user.email || "",
     username: user.username || "User",
   };
 
-  // 5. Render đúng component dựa trên room.type
   return (
     <StreamVideoProvider user={streamUser}>
+      {/* Component này sẽ âm thầm xử lý việc rời phòng khi user tắt tab */}
+      <RoomPresence roomId={room.id} />
+
       {room.type === "BATTLE" ? (
         <BattleRoom roomId={room.id} />
       ) : (

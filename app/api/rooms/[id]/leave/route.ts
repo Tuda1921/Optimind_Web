@@ -1,0 +1,35 @@
+// File: app/api/rooms/[id]/leave/route.ts
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/utils/auth-server";
+
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id: roomId } = await params;
+
+    console.log("Leaving room:", { roomId, userId: user.id });
+
+    await prisma.roomMember.deleteMany({
+      where: {
+        roomId: roomId,
+        userId: user.id,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (e: any) {
+    console.error("Leave room error:", e);
+    return NextResponse.json(
+      { error: "Failed to leave room" },
+      { status: 500 }
+    );
+  }
+}
