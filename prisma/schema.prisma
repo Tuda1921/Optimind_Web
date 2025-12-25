@@ -32,6 +32,37 @@ model User {
   sentMessages   Message[]      @relation("SentMessages")
 }
 
+model Pet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String   @default("My Pet")
+  type      String   @default("cat")
+  level     Int      @default(1)
+  experience Int     @default(0)
+  hunger    Int      @default(50)
+  happiness Int      @default(50)
+  energy    Int      @default(50)
+  lastFed   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model ShopItem {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  type        String     // "pet", "game_play", "cosmetic", etc.
+  price       Int
+  data        String?    // JSON string for additional data, e.g. pet type
+  isAvailable Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+
+  inventory   Inventory[]
+}
+
 model Task {
   id          String    @id @default(cuid())
   title       String
@@ -118,34 +149,6 @@ model Message {
   createdAt DateTime @default(now())
 
   @@index([roomId, createdAt])
-}
-
-model Pet {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  type        String
-  level       Int      @default(1)
-  hunger      Int      @default(100)
-  happiness   Int      @default(100)
-  energy      Int      @default(100)
-  lastFed     DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model ShopItem {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  type        String
-  price       Int
-  imageUrl    String?
-  isAvailable Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
-  inventory Inventory[]
 }
 
 model Inventory {

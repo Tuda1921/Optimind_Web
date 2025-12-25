@@ -104,7 +104,7 @@ async function main() {
       description: 'Adopt a cute dog as your pet',
       price: 500,
       type: 'pet',
-      data: JSON.stringify({ type: 'dog', name: 'Buddy' }),
+
     },
     {
       id: 'pet-cat-1',
@@ -112,7 +112,7 @@ async function main() {
       description: 'Adopt a fluffy cat',
       price: 400,
       type: 'pet',
-      data: JSON.stringify({ type: 'cat', name: 'Whiskers' }),
+
     },
     {
       id: 'pet-bird-1',
@@ -120,30 +120,22 @@ async function main() {
       description: 'Adopt a colorful bird',
       price: 300,
       type: 'pet',
-      data: JSON.stringify({ type: 'bird', name: 'Tweety' }),
+
     },
     // Game play items
     {
       id: 'game-play-1',
-      name: '1 Game Play',
+      name: 'Extra Game Play',
       description: 'Buy 1 extra game session',
       price: 50,
       type: 'game_play',
 
     },
     {
-      id: 'game-play-2',
-      name: '2 Game Plays',
-      description: 'Buy 2 extra game sessions',
-      price: 90,
-      type: 'game_play',
-
-    },
-    {
-      id: 'game-play-3',
-      name: '3 Game Plays',
-      description: 'Buy 3 extra game sessions',
-      price: 120,
+      id: 'game-play-5',
+      name: '5 Game Plays',
+      description: 'Buy 5 extra game sessions',
+      price: 200,
       type: 'game_play',
 
     },
@@ -162,14 +154,12 @@ async function main() {
   // Create a demo user
   const demoUser = await prisma.user.upsert({
     where: { email: 'demo@optimind.com' },
-    update: {
-      coins: 2000,
-    },
+    update: {},
     create: {
       email: 'demo@optimind.com',
       name: 'Demo User',
       passwordHash: '$2a$10$X5xK8fQb.7EqV1KZlY3.JeZ8QYQ8zQZJnLYxJYYJYYJYYJYYJYYJY', // "password123"
-      coins: 2000,
+      coins: 1000,
       level: 5,
       exp: 250,
     },
@@ -180,15 +170,11 @@ async function main() {
   // Create demo pet
   await prisma.pet.upsert({
     where: { userId: demoUser.id },
-    update: {
-      experience: 0,
-    },
+    update: {},
     create: {
       userId: demoUser.id,
       name: 'Buddy',
       type: 'dog',
-      level: 2,
-      experience: 0,
       hunger: 80,
       happiness: 90,
       energy: 70,
@@ -220,6 +206,7 @@ async function main() {
       description: 'Review vocabulary and grammar',
       status: 'completed',
       priority: 'low',
+      completedAt: new Date(),
       userId: demoUser.id,
     },
   ];

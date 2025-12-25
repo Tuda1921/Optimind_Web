@@ -115,4 +115,26 @@ $shop = Invoke-WebRequest -Uri "$baseUrl/api/gamification/shop" `
 Write-Host "Status: $($shop.StatusCode)"
 Write-Host "Response: $($shop.Content)`n"
 
+Write-Host "`n=== 12. TEST BUY ITEM ===" -ForegroundColor Cyan
+$buy = Invoke-WebRequest -Uri "$baseUrl/api/gamification/shop/buy" `
+  -Method POST `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body '{"itemId":"apple-1"}' `
+  -WebSession $session `
+  -UseBasicParsing
+
+Write-Host "Status: $($buy.StatusCode)"
+Write-Host "Response: $($buy.Content)`n"
+
+Write-Host "`n=== 13. TEST BUY GAME PLAY ===" -ForegroundColor Cyan
+$buyGame = Invoke-WebRequest -Uri "$baseUrl/api/gamification/shop/buy" `
+  -Method POST `
+  -Headers @{"Content-Type"="application/json"} `
+  -Body '{"itemId":"game-play-2"}' `
+  -WebSession $session `
+  -UseBasicParsing
+
+Write-Host "Status: $($buyGame.StatusCode)"
+Write-Host "Response: $($buyGame.Content)`n"
+
 Write-Host "`n=== ✅ ALL TESTS COMPLETED ===" -ForegroundColor Green

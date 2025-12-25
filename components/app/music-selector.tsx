@@ -61,9 +61,11 @@ const formatSeconds = (seconds: number): string => {
 	).padStart(2, "0")}`;
 };
 
-interface MusicPlayerProps {}
+interface MusicPlayerProps {
+	filterType?: "MP3" | "YouTube";
+}
 
-const MusicPlayer: FC<MusicPlayerProps> = () => {
+const MusicPlayer: FC<MusicPlayerProps> = ({ filterType }) => {
 	// Lấy state và handlers từ Context
 	const {
 		tracks,
@@ -125,6 +127,7 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 	// Xử lý chọn track
 	const handleTrackSelect = (track: any) => {
 		setCurrentTrack(track);
+		setIsPlaying(true); // Tự động phát khi chọn track
 	};
 
 	// Xử lý Xóa track
@@ -198,7 +201,9 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 		>
 			{/* Header và nút đóng */}
 			<div className="flex justify-between items-center pb-3 border-b border-white/20">
-				<h3 className="text-lg font-semibold">Nhạc nền & Âm thanh</h3>
+				<h3 className="text-lg font-semibold">
+					{filterType === "MP3" ? "Nhạc nền" : "Âm thanh"}
+				</h3>
 				<Button
 					variant="ghost"
 					size="icon"
@@ -304,11 +309,15 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 				</p>
 			</div>
 
-			{/* Danh sách nhạc (scrollable) */}
-			<h4 className="text-sm font-semibold mt-2 mb-2">Chọn bản nhạc</h4>
-			<ScrollArea className="flex-1 overflow-hidden">
-				<div className="space-y-1 p-1">
-					{tracks.map((track) => (
+			{/* Danh sách nhạc (scrollable) - Chỉ hiện khi MP3 */}
+			{filterType === "MP3" && (() => {
+				const filteredTracks = tracks.filter((t) => t.type !== "YouTube");
+				return (
+					<>
+						<h4 className="text-sm font-semibold mt-2 mb-2">Nhạc nền</h4>
+						<ScrollArea className="flex-1 overflow-hidden">
+							<div className="space-y-1 p-1">
+								{filteredTracks.map((track) => (
 						<div
 							key={track.id}
 							className={cn(
@@ -367,6 +376,9 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 					))}
 				</div>
 			</ScrollArea>
+			</>
+				);
+			})()}
 
 			{/* Dialog Đổi tên */}
 			<Dialog open={isRenameOpen} onOpenChange={setIsRenameOpen}>

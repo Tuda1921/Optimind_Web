@@ -43,6 +43,13 @@ export async function POST(req: Request) {
         throw new Error("Item not found");
       }
 
+      // Calculate quantity to buy
+      let buyQuantity = quantity;
+      if (item.type === 'game_play') {
+        const num = parseInt(itemId.split('-')[2]) || 1;
+        buyQuantity = num;
+      }
+
       // Check user has enough coins
       const user = await tx.user.findUnique({
         where: { id: userId },
@@ -57,47 +64,68 @@ export async function POST(req: Request) {
         throw new Error("Not enough coins");
       }
 
-      // Deduct coins
+      // Deduct coins from user
       await tx.user.update({
         where: { id: userId },
-        data: {
-          coins: { decrement: totalCost },
-        },
+        data: { coins: { decrement: totalCost } },
       });
 
-      // Add to inventory
-      const existingInventory = await tx.inventory.findFirst({
-        where: {
-          userId,
-          itemId,
-        },
-      });
-
-      let inventory;
-      if (existingInventory) {
-        inventory = await tx.inventory.update({
-          where: { id: existingInventory.id },
-          data: {
-            quantity: { increment: quantity },
+      // Handle different item types
+      if (item.type === "pet") {
+        // For pets, create or update pet
+        const petData = JSON.parse(item.data || "{}");
+        await tx.pet.upsert({
+          where: { userId },
+          update: {
+            name: petData.name || item.name,
+            type: petData.type || "cat",
+            level: 1,
+            hunger: 50,
+            happiness: 50,
+            energy: 50,
+          },
+          create: {
+            userId,
+            name: petData.name || item.name,
+            type: petData.type || "cat",
           },
         });
+        return { newBalance: user.coins - totalCost, petUpdated: true };
       } else {
-        inventory = await tx.inventory.create({
-          data: {
+        // For other items, add to inventory
+        const existingInventory = await tx.inventory.findFirst({
+          where: {
             userId,
             itemId,
-            quantity,
           },
         });
-      }
 
-      return { inventory, newBalance: user.coins - totalCost };
+        let inventory;
+        if (existingInventory) {
+          inventory = await tx.inventory.update({
+            where: { id: existingInventory.id },
+            data: {
+              quantity: { increment: buyQuantity },
+            },
+          });
+        } else {
+          inventory = await tx.inventory.create({
+            data: {
+              userId,
+              itemId,
+              quantity: buyQuantity,
+            },
+          });
+        }
+        return { inventory: { ...inventory, item }, newBalance: user.coins - totalCost };
+      }
     });
 
     return NextResponse.json({
       message: "Purchase successful",
-      inventory: result.inventory,
       balance: result.newBalance,
+      ...(result.inventory && { inventory: result.inventory }),
+      ...(result.petUpdated && { petUpdated: true }),
     });
   } catch (e: any) {
     console.error(e);

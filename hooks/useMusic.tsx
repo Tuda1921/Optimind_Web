@@ -31,6 +31,7 @@ interface MusicContextType {
 	isPlayerVisible: boolean;
 	seekPosition: number;
 	duration: number;
+	audioRef: React.RefObject<HTMLAudioElement | null>;
 
 	// Handlers
 	setVolume: (v: number) => void;
@@ -279,6 +280,7 @@ export const MusicProvider: FC<MusicProviderProps> = ({ children }) => {
 			isPlayerVisible,
 			seekPosition,
 			duration,
+			audioRef,
 			setDuration,
 			setVolume,
 			setIsPlaying: handleSetIsPlaying, // THAY ĐỔI
