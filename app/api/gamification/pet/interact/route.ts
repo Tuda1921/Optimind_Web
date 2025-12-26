@@ -49,24 +49,26 @@ export async function POST(req: Request) {
       }
 
       // If feeding, check inventory and consume item
-      if (action === "feed" && itemId) {
+      if (action === "feed") {
+        // Find any food item in inventory
         const inventoryItem = await tx.inventory.findFirst({
           where: {
             userId,
-            itemId,
+            item: {
+              type: "food",
+            },
             quantity: { gt: 0 },
           },
           include: {
             item: true,
           },
+          orderBy: {
+            createdAt: "asc", // Use oldest first
+          },
         });
 
         if (!inventoryItem) {
-          throw new Error("Item not found in inventory");
-        }
-
-        if (inventoryItem.item.category !== "food") {
-          throw new Error("Item is not food");
+          throw new Error("No food available in inventory");
         }
 
         // Consume item
@@ -77,21 +79,53 @@ export async function POST(req: Request) {
           },
         });
 
-        // Increase hunger
+        // Increase hunger and energy, and experience
+        let newExperience = pet.experience + 1;
+        let newLevel = pet.level;
+        let newType = pet.type;
+
+        // Check for level up (every 10 interactions)
+        if (newExperience >= newLevel * 10) {
+          newLevel += 1;
+          newExperience = 0;
+          // Upgrade pet type for better appearance
+          const petTypes = ['cat', 'dog', 'rabbit', 'bird', 'dragon', 'unicorn'];
+          newType = petTypes[Math.min(newLevel - 1, petTypes.length - 1)];
+        }
+
         pet = await tx.pet.update({
           where: { userId },
           data: {
-            hunger: Math.min(pet.hunger + 20, 100),
+            hunger: Math.min(pet.hunger + 30, 100),
+            energy: Math.min(pet.energy + 20, 100),
+            experience: newExperience,
+            level: newLevel,
+            type: newType,
             lastFed: new Date(),
           },
         });
       } else if (action === "play") {
-        // Increase happiness, decrease energy
+        // Increase happiness, decrease energy, and experience
+        let newExperience = pet.experience + 1;
+        let newLevel = pet.level;
+        let newType = pet.type;
+
+        // Check for level up
+        if (newExperience >= newLevel * 10) {
+          newLevel += 1;
+          newExperience = 0;
+          const petTypes = ['cat', 'cat', 'cat', 'dog', 'rabbit', 'bird', 'dragon', 'unicorn'];
+          newType = petTypes[Math.min(newLevel - 1, petTypes.length - 1)];
+        }
+
         pet = await tx.pet.update({
           where: { userId },
           data: {
             happiness: Math.min(pet.happiness + 15, 100),
             energy: Math.max(pet.energy - 10, 0),
+            experience: newExperience,
+            level: newLevel,
+            type: newType,
           },
         });
       } else if (action === "clean") {

@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         level: 1,
         experience: 0,
         exp: 0,
-        coins: 0,
+        coins: 100, // Give initial coins for testing shop
       },
     });
 
