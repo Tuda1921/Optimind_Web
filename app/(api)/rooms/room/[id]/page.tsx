@@ -1,37 +1,51 @@
-"use client";
+// "use client";
 
-import { useState, useEffect, use } from "react";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/db"
+import { getCurrentUser } from "@/utils/auth-server"; 
+import StreamVideoProvider from "@/hooks/useStream";
+import BattleRoom from "@/components/rooms/battle-room";
+import StudyRoom from "@/components/rooms/study-room";
 
-import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
+export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
+  // 1. Await params
+  const { id: roomId } = await params;
 
-import { getCallById } from "@/hooks/useCall";
-import RoomSetUp from "@/components/rooms/room-setup";
-import Loader from "@/components/rooms/loader";
-import MeetingRoom from "@/components/rooms/study-room";
-import { useParams } from "next/navigation";
+  // 2. Check User
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
-const Room = () => {
-	const params = useParams<{ id: string }>();
-	const { id } = params;
+  // 3. Check Room
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: { id: true, username: true, email: true },
+          },
+        },
+      },
+    },
+  });
 
-	const [isSetUpComplete, setIsSetUpComplete] = useState(false);
-	const { call, isCallLoading } = getCallById(id);
+  if (!room) return <div>Phòng không tồn tại</div>;
 
-	if (isCallLoading) return <Loader />;
+  // 4. Chuẩn bị User cho Stream SDK
+  const streamUser = {
+    id: user.id,
+    email: user.email || "",
+    username: user.username || "User",
+  };
 
-	return (
-		<div className="space-y-3">
-			<StreamCall call={call}>
-				<StreamTheme>
-					{!isSetUpComplete ? (
-						<RoomSetUp setIsSetupComplete={setIsSetUpComplete} />
-					) : (
-						<MeetingRoom />
-					)}
-				</StreamTheme>
-			</StreamCall>
-		</div>
-	);
-};
-
-export default Room;
+  // 5. Render đúng component dựa trên room.type
+  return (
+    <StreamVideoProvider user={streamUser}>
+      {room.type === "BATTLE" ? (
+        <BattleRoom roomId={room.id} />
+      ) : (
+        <StudyRoom roomId={room.id} />
+      )}
+    </StreamVideoProvider>
+  );
+}

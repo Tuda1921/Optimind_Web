@@ -54,14 +54,14 @@ const mockTracks: Track[] = [
 		name: "Mưa Rào Nhẹ",
 		type: "Soundscape",
 		artist: "Optimind Sounds",
-		url: "/sounds/rain.mp3",
+		url: "https://assets.codepen.io/4358584/Equator.mp3",
 	},
 	{
 		id: "lofi",
 		name: "Lofi Focus Beat",
 		type: "Music",
 		artist: "Chill Beats",
-		url: "/sounds/lofi.mp3",
+		url: "https://assets.codepen.io/4358584/Equator.mp3",
 	},
 	{
 		id: "piano",

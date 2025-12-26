@@ -88,6 +88,7 @@ const PomodoroTimer: FC<PomodoroTimerProps> = ({
 		let interval: NodeJS.Timeout | null = null;
 		let lastTick = performance.now();
 		let carryMs = 0;
+		let tickCount = 0;
 
 		if (isRunning && timer > 0) {
 			interval = setInterval(() => {
@@ -99,6 +100,10 @@ const PomodoroTimer: FC<PomodoroTimerProps> = ({
 				if (steps > 0) {
 					carryMs -= steps * 1000;
 					setTimer((prev) => Math.max(prev - steps, 0));
+					tickCount += steps;
+					if (tickCount % 10 === 0) {
+						console.log(`[Timer] ${tickCount} seconds elapsed, ${steps} steps, carryMs: ${carryMs}`);
+					}
 				}
 			}, 250); // kiểm tra 4 lần mỗi giây để bắt kịp trễ
 		}

@@ -6,6 +6,7 @@ import NavSidebar from "@/components/app/sidebar";
 import ControlToolbar from "@/components/app/toolbar";
 import { CameraProvider } from "@/hooks/useCamera";
 import { MusicProvider } from "@/hooks/useMusic";
+import { DashboardStatsProvider, useDashboardStats } from "@/hooks/useDashboardStats";
 import { usePathname } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
@@ -19,17 +20,13 @@ type NavPageId =
 	| "/history"
 	| "/ranking";
 
-const AppLayout = ({
-	children,
-}: Readonly<{
-	children: React.ReactNode;
-}>) => {
-	const [streak, setStreak] = useState<number>(5);
+// Component con để sử dụng hook
+const AppLayoutContent = ({ children }: { children: React.ReactNode }) => {
 	const [backgroundUrl, setBackgroundUrl] = useState<string>(
 		"https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=2070&auto=format&fit=crop"
 	);
-	const [studyHoursToday, setStudyHoursToday] = useState<number>(2.5);
 	const activePage = usePathname() as NavPageId;
+	const { stats, loading } = useDashboardStats();
 
 	// MỚI: State cho việc ẩn/hiện UI
 	const [isUiVisible, setIsUiVisible] = useState<boolean>(true);
@@ -99,8 +96,8 @@ const AppLayout = ({
 
 						{/* === 3. Header Người dùng (MỚI) === */}
 						<UserHeader
-							streak={streak}
-							studyHoursToday={studyHoursToday}
+							streak={stats.streak}
+							studyHoursToday={stats.studyHoursToday}
 							isUiVisible={isUiVisible}
 						/>
 
@@ -114,4 +111,14 @@ const AppLayout = ({
 	);
 };
 
+// Component chính bọc Provider
+const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+	return (
+		<DashboardStatsProvider>
+			<AppLayoutContent>{children}</AppLayoutContent>
+		</DashboardStatsProvider>
+	);
+};
+
 export default AppLayout;
+

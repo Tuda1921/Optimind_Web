@@ -121,14 +121,17 @@ const UserHeader = ({
 				{/* 4. Avatar Người dùng (MỚI: Dùng DropdownMenu) */}
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Avatar className="h-10 w-10 cursor-pointer border-2 border-white/30">
-							<AvatarImage src="/avatars/user.png" alt="User" />
-							<AvatarFallback>U</AvatarFallback>
-						</Avatar>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-10 w-10 rounded-full text-white hover:bg-white/20"
+						>
+							<User className="w-5 h-5" />
+						</Button>
 					</DropdownMenuTrigger>
 
 					<DropdownMenuContent
-						className={cn("", dropdownGlassEffect)} // Áp dụng style kính
+						className={cn("", dropdownGlassEffect)}
 						align="end"
 					>
 						<DropdownMenuLabel>Tài khoản</DropdownMenuLabel>

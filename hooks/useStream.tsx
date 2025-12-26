@@ -1,46 +1,92 @@
-// ...existing code...
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { StreamVideo, StreamVideoClient } from "@stream-io/video-react-sdk";
-import { tokenProvider } from "@/lib/generate-token";
-import Loader from "@/components/rooms/loader";
-import { User } from "@/utils/types";
+import { ReactNode, useEffect, useState } from "react";
+import {
+  StreamVideoClient,
+  StreamVideo,
+} from "@stream-io/video-react-sdk";
 
-interface StreamVideoProviderProps {
-	user: User | null;
-	children: React.ReactNode;
+interface StreamUser {
+  id: string;
+  email: string;
+  username: string;
 }
 
-const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY as string | undefined;
+interface StreamVideoProviderProps {
+  user: StreamUser;
+  children: ReactNode;
+}
 
-export const StreamVideoProvider: React.FC<StreamVideoProviderProps> = ({
-	user,
-	children,
-}) => {
-	const [videoClient, setVideoClient] = useState<StreamVideoClient>();
+export default function StreamVideoProvider({
+  user,
+  children,
+}: StreamVideoProviderProps) {
+  const [client, setClient] = useState<StreamVideoClient | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		if (!user) return;
-		if (!apiKey) throw new Error("Stream API key missing");
+  useEffect(() => {
+    if (!user) return;
 
-		const client = new StreamVideoClient({
-			apiKey,
-			user: {
-				id: user.id,
-				name: user.email || "",
-				// image: user.avatarUrl || "",
-			},
-			tokenProvider: tokenProvider,
-		});
+    const initializeStream = async () => {
+      try {
+        const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
-		setVideoClient(client);
-	}, [user]);
+        if (!apiKey) {
+          throw new Error("Stream API key missing. Check NEXT_PUBLIC_STREAM_API_KEY in .env");
+        }
 
-	if (!videoClient) return <Loader />;
+        // Get token from API endpoint
+        const tokenResponse = await fetch("/api/auth/token", {
+          method: "GET",
+          credentials: "include",
+        });
 
-	return <StreamVideo client={videoClient}>{children}</StreamVideo>;
-};
+        if (!tokenResponse.ok) {
+          const errorData = await tokenResponse.json();
+          throw new Error(errorData.error || "Failed to fetch token");
+        }
 
-export default StreamVideoProvider;
-// ...existing code...
+        const { token } = await tokenResponse.json();
+
+        if (!token) {
+          throw new Error("No token returned from server");
+        }
+
+        const streamClient = new StreamVideoClient({
+          apiKey,
+          user: {
+            id: user.id,
+            name: user.username,
+          },
+          token,
+        });
+
+        setClient(streamClient);
+      } catch (err: any) {
+        console.error("Stream initialization error:", err);
+        setError(err.message || "Failed to initialize Stream");
+      }
+    };
+
+    initializeStream();
+
+    return () => {
+      setClient((prevClient) => {
+        if (prevClient) {
+          prevClient.disconnectUser();
+        }
+        return null;
+      });
+    };
+  }, [user.id, user.username]);
+
+  if (error) {
+    return <div className="text-red-500 p-4">Error: {error}</div>;
+  }
+
+  if (!client) {
+    return <div className="text-center p-4">Loading Stream...</div>;
+  }
+
+  return <StreamVideo client={client}>{children}</StreamVideo>;
+}

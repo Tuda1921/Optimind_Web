@@ -164,7 +164,7 @@ async function main() {
       description: 'Review vocabulary and grammar',
       status: 'completed',
       priority: 'low',
-      completedAt: new Date(),
+    //  completedAt: new Date(),
       userId: demoUser.id,
     },
   ];

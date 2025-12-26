@@ -297,11 +297,6 @@ const DraggableCamera: FC<DraggableCameraProps> = () => {
 			>
 				<ArrowDownLeft className="h-4 w-4" />
 			</Button>
-
-			{/* Nội dung Camera */}
-			<div className="flex h-full w-full items-center justify-center bg-black/30">
-				<User className="h-16 w-16 text-gray-500" />
-			</div>
 		</div>
 	);
 };

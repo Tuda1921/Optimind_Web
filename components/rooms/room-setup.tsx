@@ -1,96 +1,67 @@
-// Tên file: app/components/rooms/RoomSetUp.tsx
+
+
 "use client";
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-	Call,
-	DeviceSettings,
-	useCall,
-	VideoPreview,
-} from "@stream-io/video-react-sdk";
-import React, { useEffect, useState, Dispatch, SetStateAction } from "react";
-import { Mic, MicOff, Video, VideoOff } from "lucide-react"; // Thêm icon
-import { cn } from "@/lib/utils";
-import { Checkbox } from "../ui/checkbox";
-import { Label } from "../ui/label";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+// (Import các UI component khác nếu cần)
 
-// Hàm tiện ích
-const glassEffect =
-	"bg-black/50 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg";
+export default function RoomSetup() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  // Thêm state cho Type
+  const [type, setType] = useState<"STUDY" | "BATTLE">("STUDY");
+  const [isLoading, setIsLoading] = useState(false);
 
-interface RoomSetUpProps {
-	setIsSetupComplete: (value: boolean) => void;
+  const handleCreate = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/rooms", {
+        method: "POST",
+        body: JSON.stringify({ name, type }), // Gửi type lên API
+      });
+      const data = await res.json();
+      router.push(`/rooms/room/${data.id}`);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="p-6 max-w-md mx-auto space-y-4">
+      <h2 className="text-xl font-bold">Tạo Phòng Mới</h2>
+      
+      <div className="space-y-2">
+        <Label>Tên phòng</Label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nhập tên..." />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Chế độ</Label>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setType("STUDY")}
+            className={`flex-1 p-3 border rounded ${type === "STUDY" ? "bg-blue-100 border-blue-500" : ""}`}
+          >
+            📚 Tự học
+          </button>
+          <button
+            onClick={() => setType("BATTLE")}
+            className={`flex-1 p-3 border rounded ${type === "BATTLE" ? "bg-red-100 border-red-500" : ""}`}
+          >
+            ⚔️ Thi đấu
+          </button>
+        </div>
+      </div>
+
+      <Button onClick={handleCreate} disabled={!name || isLoading} className="w-full">
+        {isLoading ? "Đang tạo..." : "Bắt đầu ngay"}
+      </Button>
+    </Card>
+  );
 }
-
-const RoomSetUp: React.FC<RoomSetUpProps> = ({ setIsSetupComplete }) => {
-	const [isMicCamToggled, setIsMicCamToggled] = useState<boolean>(false);
-
-	const call = useCall() as Call;
-
-	if (!call) {
-		throw new Error(
-			"useStreamCall must be used within a StreamCall component."
-		);
-	}
-
-	useEffect(() => {
-		if (!call) return;
-		if (isMicCamToggled) {
-			call?.camera.disable();
-			call?.microphone.disable();
-		} else {
-			call?.camera.enable();
-			call?.microphone.enable();
-		}
-	}, [isMicCamToggled, call?.camera, call?.microphone]);
-
-	return (
-		// Áp dụng Glass Effect cho container
-		<div
-			className={cn(
-				"absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex w-full max-w-xl flex-col items-center justify-center gap-6 p-6",
-				glassEffect
-			)}
-		>
-			{/* Tiêu đề */}
-			<h1 className="text-center text-3xl font-bold text-white">
-				Cài đặt trước khi tham gia
-			</h1>
-
-			{/* Khung Preview Video */}
-			<div className="flex flex-col w-full justify-center items-center gap-4">
-				<VideoPreview className="max-h-70" />
-			</div>
-
-			{/* Nút điều khiển và Device Settings */}
-			<div className="flex items-center justify-center gap-6">
-				<Label htmlFor="mic-cam-toggle p-0">
-					<input
-						id="mic-cam-toggle"
-						type="checkbox"
-						checked={isMicCamToggled}
-						onChange={(e) => setIsMicCamToggled(e.target.checked)}
-					/>
-					Join with mic cam off
-				</Label>
-				{/* Device Settings */}
-				<div className="text-white">
-					<DeviceSettings />
-				</div>
-			</div>
-
-			{/* Nút Tham gia */}
-			<Button
-				className="rounded-full bg-green-500 hover:bg-green-600 px-6 py-3 text-lg font-semibold"
-				onClick={() => {
-					call.join();
-					setIsSetupComplete(true);
-				}}
-			>
-				Tham gia phòng
-			</Button>
-		</div>
-	);
-};
-
-export default RoomSetUp;

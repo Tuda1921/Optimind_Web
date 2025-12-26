@@ -1,18 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
-function getUserIdFromCookie(req: Request): string | null {
-  const cookie = req.headers.get("cookie") || "";
-  const userCookie = cookie.split(";").find((c) => c.trim().startsWith("user_data="));
-  if (!userCookie) return null;
-  try {
-    const value = decodeURIComponent(userCookie.split("=")[1]);
-    const user = JSON.parse(value);
-    return user.id;
-  } catch {
-    return null;
-  }
-}
+import { getCurrentUser } from "@/utils/auth-server";
 
 // GET /api/rooms - Get active rooms
 export async function GET(req: Request) {
@@ -55,8 +43,8 @@ export async function GET(req: Request) {
 // POST /api/rooms - Create room
 export async function POST(req: Request) {
   try {
-    const userId = getUserIdFromCookie(req);
-    if (!userId) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -76,7 +64,7 @@ export async function POST(req: Request) {
         password,
         members: {
           create: {
-            userId,
+            userId: user.id,
           },
         },
       },
@@ -84,16 +72,23 @@ export async function POST(req: Request) {
         members: {
           include: {
             user: {
-              select: { id: true, username: true, email: true },
+              select: { id: true, username: true, email: true, avatarUrl: true },
             },
           },
+          orderBy: { joinedAt: "asc" },
+        },
+        _count: {
+          select: { members: true },
         },
       },
     });
 
-    return NextResponse.json({ room });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Failed to create room" }, { status: 500 });
+    return NextResponse.json({ room, success: true });
+  } catch (e: any) {
+    console.error("Room creation error:", e);
+    return NextResponse.json(
+      { error: e.message || "Failed to create room" },
+      { status: 500 }
+    );
   }
 }

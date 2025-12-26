@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, FC } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,10 +30,12 @@ export type RoomType = Room;
 
 // --- Component Chính ---
 const StudyRoomPage: FC = () => {
+	const router = useRouter();
 	const [rooms, setRooms] = useState<Room[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [isCreatingRoom, setIsCreatingRoom] = useState(false);
 	const [newRoomName, setNewRoomName] = useState("");
+	const [newRoomType, setNewRoomType] = useState<"STUDY" | "BATTLE">("STUDY");
 	const [newRoomMax, setNewRoomMax] = useState(4);
 	const [newRoomPassword, setNewRoomPassword] = useState("");
 	const [joinRoomId, setJoinRoomId] = useState<string | null>(null);
@@ -58,12 +61,17 @@ const StudyRoomPage: FC = () => {
 	};
 
 	const handleCreateRoom = async () => {
+		if (!newRoomName.trim()) {
+			alert("Vui lòng nhập tên phòng");
+			return;
+		}
 		try {
 			const res = await fetch("/api/rooms", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					name: newRoomName,
+					type: newRoomType,
 					maxMembers: newRoomMax,
 					password: newRoomPassword || undefined,
 				}),
@@ -71,16 +79,25 @@ const StudyRoomPage: FC = () => {
 
 			if (res.ok) {
 				const data = await res.json();
-				setRooms([...rooms, data.room]);
-				setNewRoomName("");
-				setNewRoomMax(4);
-				setNewRoomPassword("");
-				setIsCreatingRoom(false);
-				alert("Room created successfully!");
+				if (data.room) {
+					setRooms([...rooms, data.room]);
+					setNewRoomName("");
+					setNewRoomType("STUDY");
+					setNewRoomMax(4);
+					setNewRoomPassword("");
+					setIsCreatingRoom(false);
+					alert("Phòng tạo thành công!");
+					// Redirect to room detail page
+					router.push(`/rooms/room/${data.room.id}`);
+				}
+			} else {
+				const error = await res.json();
+				alert(`Lỗi: ${error.error}`);
+				console.error("Create room error:", error);
 			}
 		} catch (error) {
 			console.error("Failed to create room:", error);
-			alert("Failed to create room");
+			alert("Không thể tạo phòng");
 		}
 	};
 
@@ -94,18 +111,21 @@ const StudyRoomPage: FC = () => {
 				}),
 			});
 
-			if (res.ok) {
-				alert("Joined room successfully!");
+			const data = await res.json();
+
+			if (res.ok || data.success) {
+				alert("Đã tham gia phòng thành công!");
 				setJoinRoomId(null);
 				setJoinPassword("");
-				fetchRooms();
+				// Redirect to room detail page
+				router.push(`/rooms/room/${roomId}`);
 			} else {
-				const error = await res.json();
-				alert(error.message || "Failed to join room");
+				alert(`Lỗi: ${data.error}`);
+				console.error("Join room error:", data);
 			}
 		} catch (error) {
 			console.error("Failed to join room:", error);
-			alert("Failed to join room");
+			alert("Không thể tham gia phòng");
 		}
 	};
 
@@ -139,6 +159,17 @@ const StudyRoomPage: FC = () => {
 											onChange={(e) => setNewRoomName(e.target.value)}
 											placeholder="Nhập tên phòng"
 										/>
+									</div>
+									<div>
+										<Label>Loại Phòng</Label>
+										<select
+											value={newRoomType}
+											onChange={(e) => setNewRoomType(e.target.value as "STUDY" | "BATTLE")}
+											className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white"
+										>
+											<option value="STUDY" className="bg-gray-900">Phòng Học Tập</option>
+											<option value="BATTLE" className="bg-gray-900">Phòng Thi Đấu</option>
+										</select>
 									</div>
 									<div>
 										<Label>Số Thành Viên Tối Đa</Label>

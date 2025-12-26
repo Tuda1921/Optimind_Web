@@ -42,19 +42,19 @@ interface TaskListWidgetProps {
 
 // MỚI: Dữ liệu ban đầu
 const initialTasks: Task[] = [
-	{
-		id: "1",
-		text: "Làm bài tập C++ (Tree)",
-		note: "Chương 5, bài 1-3",
-		completed: false,
-	},
-	{ id: "2", text: "Viết báo cáo Optimind", note: "", completed: true },
-	{
-		id: "3",
-		text: "Ôn tập chương 3 Giải tích",
-		note: "Tập trung vào tích phân",
-		completed: false,
-	},
+	// {
+	// 	id: "1",
+	// 	text: "Làm bài tập C++ (Tree)",
+	// 	note: "Chương 5, bài 1-3",
+	// 	completed: false,
+	// },
+	// { id: "2", text: "Viết báo cáo Optimind", note: "", completed: true },
+	// {
+	// 	id: "3",
+	// 	text: "Ôn tập chương 3 Giải tích",
+	// 	note: "Tập trung vào tích phân",
+	// 	completed: false,
+	// },
 ];
 
 // Component Task List
@@ -153,7 +153,7 @@ const TaskListWidget: FC<TaskListWidgetProps> = ({ show, onClose }) => {
 			<div className="flex gap-2 p-3 border-b border-white/10">
 				<Input
 					placeholder="Thêm task mới..."
-					className="bg-white/10 border-white/30 h-9 text-sm"
+					className="bg-white/10 border-white/30 h-9 text-sm placeholder:text-white"
 					value={newTaskText}
 					onChange={(e) => setNewTaskText(e.target.value)}
 					onKeyDown={(e) => e.key === "Enter" && handleAddTask()}

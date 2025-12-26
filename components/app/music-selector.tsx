@@ -8,6 +8,7 @@ import React, {
 	useEffect,
 	useCallback,
 	ChangeEvent,
+	useId,
 } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,20 +65,26 @@ const formatSeconds = (seconds: number): string => {
 interface MusicPlayerProps {}
 
 const MusicPlayer: FC<MusicPlayerProps> = () => {
+	// Hydration fix
+	const [isClient, setIsClient] = useState(false);
+	useEffect(() => {
+		setIsClient(true);
+	}, []);
+
 	// Lấy state và handlers từ Context
 	const {
 		tracks,
 		currentTrack,
 		isPlaying,
 		isPlayerVisible,
-		setIsPlaying, // THAY ĐỔI
+		setIsPlaying,
 		setCurrentTrack,
 		handleSkipForward,
-		handleReplay, // MỚI
+		handleReplay,
 		togglePlayerVisibility,
 		addCustomTrack,
 		deleteTrack,
-		updateTrackName, // MỚI
+		updateTrackName,
 		getYouTubeEmbedUrl,
 	} = useMusicContext();
 
@@ -183,22 +190,27 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 			// Gửi lệnh PAUSE khi trạng thái là paused
 			postMessageToIframe("pauseVideo");
 		}
-	}, [isPlaying, volume, currentTrack.url]); // Thêm currentTrack.url để chạy lại khi source đổi
+	}, [isPlaying, volume, currentTrack.url]);
+
+	// Tránh hydration mismatch - chỉ render sau khi client load
+	if (!isClient) {
+		return null;
+	}
 
 	return (
 		<div
 			className={cn(
-				"fixed top-1/2 right-[100px] -translate-y-1/2 z-30 w-80 h-[450px] p-4 flex flex-col", // Giảm chiều cao về 450px
+				"fixed top-1/2 right-[100px] -translate-y-1/2 z-30 w-80 h-[450px] p-4 flex flex-col",
 				glassEffect,
 				"transition-opacity duration-300",
 				isPlayerVisible
 					? "opacity-100 visible"
-					: "opacity-0 invisible pointer-events-none" // CSS ẩn/hiện
+					: "opacity-0 invisible pointer-events-none"
 			)}
 		>
 			{/* Header và nút đóng */}
 			<div className="flex justify-between items-center pb-3 border-b border-white/20">
-				<h3 className="text-lg font-semibold">Nhạc nền & Âm thanh</h3>
+				<h3 className="text-lg font-semibold text-white">Nhạc nền</h3>
 				<Button
 					variant="ghost"
 					size="icon"
@@ -209,7 +221,7 @@ const MusicPlayer: FC<MusicPlayerProps> = () => {
 				</Button>
 			</div>
 
-			{/* YouTube iframe - chỉ render khi có URL */}
+			{/* YouTube iframe */}
 			{getYouTubeEmbedUrl() && (
 				<iframe
 					ref={iframeRef}
