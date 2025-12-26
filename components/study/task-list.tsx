@@ -153,7 +153,7 @@ const TaskListWidget: FC<TaskListWidgetProps> = ({ show, onClose }) => {
 			<div className="flex gap-2 p-3 border-b border-white/10">
 				<Input
 					placeholder="Thêm task mới..."
-					className="bg-white/10 border-white/30 h-9 text-sm"
+					className="bg-white/10 border-white/30 h-9 text-sm placeholder:text-white"
 					value={newTaskText}
 					onChange={(e) => setNewTaskText(e.target.value)}
 					onKeyDown={(e) => e.key === "Enter" && handleAddTask()}

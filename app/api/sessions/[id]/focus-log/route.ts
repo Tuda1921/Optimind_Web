@@ -42,6 +42,8 @@ export async function POST(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
+    console.log(`[FocusLog] Logging score ${score} for session ${sessionId}`);
+
     const focusLog = await prisma.focusLog.create({
       data: {
         sessionId,

@@ -117,9 +117,23 @@ export async function GET(req: Request) {
     // 1. Lọc thời gian
     const now = new Date();
     let startDate = new Date();
-    if (period === "week") startDate.setDate(now.getDate() - 7);
-    else if (period === "month") startDate.setMonth(now.getMonth() - 1);
-    else if (period === "all") startDate.setFullYear(2000); 
+    // Normalize start of today for 'day'
+    if (period === "day") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    } else if (period === "week") {
+      // last 7 days including today
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === "month") {
+      // last 30 days including today
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (period === "all") {
+      startDate.setFullYear(2000);
+      startDate.setHours(0, 0, 0, 0);
+    }
 
     // 2. Lấy dữ liệu Sessions
     const sessions = await prisma.studySession.findMany({
@@ -170,23 +184,34 @@ export async function GET(req: Request) {
     }
 
     // 5. Chuẩn bị dữ liệu cho biểu đồ
-    const chartMap = new Map();
-    sessions.forEach(s => {
-      const dateStr = new Date(s.startTime).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
-      if (!chartMap.has(dateStr)) {
-        chartMap.set(dateStr, { date: dateStr, duration: 0, focus: 0, count: 0 });
-      }
-      const entry = chartMap.get(dateStr);
-      entry.duration += (s.duration || 0) / 60;
-      entry.focus += (s.focusScore || 0);
-      entry.count += 1;
-    });
+    let chartData: { date: string; minutes: number; focus: number }[] = [];
 
-    const chartData = Array.from(chartMap.values()).map((item: any) => ({
-      date: item.date,
-      minutes: Math.round(item.duration),
-      focus: Math.round(item.focus / item.count)
-    }));
+    if (period === "day") {
+      // Hiển thị theo phiên học trong ngày (mỗi điểm là một session)
+      chartData = sessions.map((s) => ({
+        date: new Date(s.startTime).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }),
+        minutes: Math.round(((s.duration || 0) / 60)),
+        focus: Math.round(s.focusScore || 0),
+      }));
+    } else {
+      // Gộp theo ngày cho tuần/tháng
+      const chartMap = new Map<string, { date: string; duration: number; focus: number; count: number }>();
+      sessions.forEach((s) => {
+        const dateStr = new Date(s.startTime).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+        if (!chartMap.has(dateStr)) {
+          chartMap.set(dateStr, { date: dateStr, duration: 0, focus: 0, count: 0 });
+        }
+        const entry = chartMap.get(dateStr)!;
+        entry.duration += (s.duration || 0) / 60;
+        entry.focus += (s.focusScore || 0);
+        entry.count += 1;
+      });
+      chartData = Array.from(chartMap.values()).map((item) => ({
+        date: item.date,
+        minutes: Math.round(item.duration),
+        focus: Math.round(item.focus / Math.max(1, item.count)),
+      }));
+    }
 
     return NextResponse.json({
       analytics: {

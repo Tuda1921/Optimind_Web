@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, FC } from "react";
 import { cn } from "@/lib/utils";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 import PomodoroTimer from "@/components/study/timer";
 import TaskListWidget from "@/components/study/task-list";
@@ -16,6 +17,7 @@ const StudyPage: FC = () => {
   const [currentFocusScore, setCurrentFocusScore] = useState<number>(0);
   
   const focusLogsRef = useRef<number[]>([]); 
+  const { refreshStats } = useDashboardStats();
 
 
   useEffect(() => {
@@ -56,27 +58,32 @@ const StudyPage: FC = () => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ focusScore: avgFocus }),
-        }).catch(err => console.error("Error ending session:", err));
+        })
+        .then(() => {
+          // Refresh dashboard stats sau khi kết thúc session
+          refreshStats();
+        })
+        .catch(err => console.error("Error ending session:", err));
       }
     };
-  }, [sessionId]);
+  }, [sessionId, refreshStats]);
 
   useEffect(() => {
     let logInterval: NodeJS.Timeout | null = null;
 
     if (isRunning && sessionId) {
       logInterval = setInterval(async () => {
-        if (currentFocusScore > 0) {
-          try {
-            await fetch(`/api/sessions/${sessionId}/focus-log`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ focusScore: currentFocusScore }),
-            });
-            focusLogsRef.current.push(currentFocusScore);
-          } catch (err) {
-            console.error("Failed to log focus score:", err);
-          }
+        console.log("[Study] Logging focus score:", currentFocusScore);
+        try {
+          await fetch(`/api/sessions/${sessionId}/focus-log`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ score: currentFocusScore }),
+          });
+          focusLogsRef.current.push(currentFocusScore);
+          console.log("[Study] Focus score logged successfully");
+        } catch (err) {
+          console.error("Failed to log focus score:", err);
         }
       }, 5000); 
     }
@@ -89,9 +96,18 @@ const StudyPage: FC = () => {
   return (
     <main className="h-screen w-screen text-white p-6 transition-all duration-500 overflow-hidden">
       <div className="relative w-full h-full">
-        {/* === AI Camera Analysis === */}
+        {/* === AI Camera Analysis (Hidden but active) === */}
         {isRunning && (
-          <div className="absolute top-0 right-0 z-50 w-80 h-60 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl">
+          <div style={{ 
+            position: "fixed", 
+            bottom: 0, 
+            right: 0, 
+            width: 1, 
+            height: 1, 
+            overflow: "hidden",
+            zIndex: -1,
+            pointerEvents: "none"
+          }}>
             <VideoEngagementAnalyzer 
               onScoreUpdate={setCurrentFocusScore}
               isActive={isRunning}
