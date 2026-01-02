@@ -172,8 +172,8 @@ const ControlToolbar: FC<ControlToolbarProps> = ({
 					glassEffect,
 					"transition-all duration-300 ease-in-out",
 					isUiVisible
-						? "opacity-100 translate-x-0"
-						: "opacity-0 translate-x-full"
+						? "opacity-100 translate-y-0"
+						: "opacity-0 translate-y-full"
 				)}
 			>
 				{/* Dùng .map() để render các nút */}

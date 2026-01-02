@@ -135,7 +135,7 @@ export default function NavSidebar({
 			<nav
 				className={cn(
 					"absolute left-2 top-15 flex flex-col gap-2 p-2 z-30",
-					"bg-black/40 backdrop-blur-md border border-white/20 rounded-lg shadow-lg",
+					glassEffect,
 					// MỚI: Thêm hiệu ứng ẩn/hiện
 					"transition-all duration-300 ease-in-out",
 					isUiVisible

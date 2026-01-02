@@ -318,65 +318,65 @@ const MusicPlayer: FC<MusicPlayerProps> = ({ filterType }) => {
 						<ScrollArea className="flex-1 overflow-hidden">
 							<div className="space-y-1 p-1">
 								{filteredTracks.map((track) => (
-						<div
-							key={track.id}
-							className={cn(
-								"flex justify-between items-center group rounded-md hover:bg-white/20",
-								currentTrack.id === track.id && "bg-white/20",
-								currentTrack.id === track.id &&
-									isPlaying &&
-									"ring-2 ring-green-400 text-green-400"
-							)}
-						>
-							<div
-								className={cn(
-									"flex w-full items-center h-auto p-2 gap-3 text-left"
-								)}
-								onClick={() => handleTrackSelect(track)}
-							>
-								<Music className="w-4 h-4 shrink-0" />
-								<div className="flex-1 truncate">
-									<p className="text-sm truncate">
-										{track.name}
-									</p>
-								</div>
-							</div>
+									<div
+										key={track.id}
+										className={cn(
+											"flex justify-between items-center group rounded-md hover:bg-white/20",
+											currentTrack.id === track.id && "bg-white/20",
+											currentTrack.id === track.id &&
+											isPlaying &&
+											"ring-2 ring-green-400 text-green-400"
+										)}
+									>
+										<div
+											className={cn(
+												"flex w-full items-center h-auto p-2 gap-3 text-left"
+											)}
+											onClick={() => handleTrackSelect(track)}
+										>
+											<Music className="w-4 h-4 shrink-0" />
+											<div className="flex-1 truncate">
+												<p className="text-sm truncate">
+													{track.name}
+												</p>
+											</div>
+										</div>
 
-							{/* Nút 3 chấm (Edit/Delete) */}
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-8 w-8 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-white/20"
-									>
-										<MoreVertical className="h-4 w-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent className="bg-black/70 backdrop-blur-md border-white/20 text-white">
-									<DropdownMenuItem
-										className="cursor-pointer"
-										onClick={() => handleStartRename(track)}
-									>
-										<Pencil className="mr-2 h-4 w-4" />
-										Đổi tên
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										className="cursor-pointer text-red-400 focus:text-red-400"
-										onClick={() =>
-											handleDeleteTrack(track.id)
-										}
-									>
-										<Trash2 className="mr-2 h-4 w-4" />
-										Xóa
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					))}
-				</div>
-			</ScrollArea>
-			</>
+										{/* Nút 3 chấm (Edit/Delete) */}
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8 text-gray-400 opacity-0 group-hover:opacity-100 hover:bg-white/20"
+												>
+													<MoreVertical className="h-4 w-4" />
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent className="bg-black/70 backdrop-blur-md border-white/20 text-white">
+												<DropdownMenuItem
+													className="cursor-pointer"
+													onClick={() => handleStartRename(track)}
+												>
+													<Pencil className="mr-2 h-4 w-4" />
+													Đổi tên
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													className="cursor-pointer text-red-400 focus:text-red-400"
+													onClick={() =>
+														handleDeleteTrack(track.id)
+													}
+												>
+													<Trash2 className="mr-2 h-4 w-4" />
+													Xóa
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</div>
+								))}
+							</div>
+						</ScrollArea>
+					</>
 				);
 			})()}
 
