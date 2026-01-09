@@ -108,7 +108,7 @@
 // }
 
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 function getUserIdFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
@@ -166,7 +166,7 @@ export async function GET(req: Request) {
     });
 
     // --- SỬA LỖI: Map dữ liệu trả về ---
-    const formattedTasks = tasks.map(task => {
+    const formattedTasks = tasks.map((task: any) => {
       // 1. Tự động tạo timeSlot từ startTime/endTime nếu có
       let timeSlot = "09:00 - 10:00"; // Mặc định
       if (task.startTime && task.endTime) {
